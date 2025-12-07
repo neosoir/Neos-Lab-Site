@@ -1,5 +1,5 @@
 FROM node:20
 
-USER node
+#USER node
 
 WORKDIR /frontend
