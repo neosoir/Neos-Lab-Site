@@ -5,7 +5,9 @@ function Header() {
   return (
     <header className="header">
       <div className="header__brand">
-        <img src="/core_color.png" alt="Neos Lab" className="header__logo-img" />
+        <a href="/">
+          <img src="/core_color.png" alt="Neos Lab" className="header__logo-img" />
+        </a>
         <div className="header__text">
           <span className="header__title">Neos Lab</span>
           <span className="header__subtitle">Agencia de Marketing Digital</span>
