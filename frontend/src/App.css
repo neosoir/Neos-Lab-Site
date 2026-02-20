@@ -336,6 +336,25 @@
           color: var(--Gradient-start);
         }
       }
+      
+      .footer__links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+        
+        a {
+          color: var(--Gradient-start);
+          text-decoration: none;
+          font-size: 12px;
+          transition: all 0.3s ease;
+          
+          &:hover {
+            color: var(--Neon-purple);
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+          }
+        }
+      }
     }
     
     .footer__copyright {

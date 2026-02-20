@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 
@@ -7,6 +8,8 @@ import { LuBrainCircuit } from "react-icons/lu";
 import { MdFace2 } from "react-icons/md";
 import Header from './componets/Header';
 import Footer from './componets/Footer';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 import './App.css';
 
@@ -20,7 +23,7 @@ interface Model {
   name: string;
 }
 
-function App() {
+function Chat() {
   const [text, setText] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
   const apiUrl = import.meta.env.VITE_OLLAMA_API_URL;
@@ -29,11 +32,11 @@ function App() {
   const [selectedModel, setSelectedModel] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const options = import.meta.env.VITE_OLLAMA_USE_OPTIONS === 'true' ? {
-    num_predict: 100, // Limita la respuesta a 100 tokens
-    temperature: 0.7, // Controla la creatividad de la respuesta
-    top_p: 0.9, // Equilibra coherencia y diversidad
-    repeat_penalty: 1.1, // Evita repeticiones
-    stop: ["\n"], // Puede detener la generación al final de la oración
+    num_predict: 100,
+    temperature: 0.7,
+    top_p: 0.9,
+    repeat_penalty: 1.1,
+    stop: ["\n"],
   } : {};
   
   const cleanMessage = (message: string) => {
@@ -120,80 +123,83 @@ function App() {
   };
 
   return (
-    <>
-      <Header />
-      <div className="chat__container">
-        <div className='chat__container--header'>
-          <h2>Neos Lab</h2>
-          <p className="tagline">Agencia de Publicidad y Marketing Digital</p>
-        </div>
-
-        <h1>Asistente Virtual</h1>
-
-        <div className="chat__container--conversation">
-
-          {/* Conversation messages */}
-          <div className='conversation__messages'>
-            {conversation.map((msg, index) => (
-              <div key={index} className="message">
-                {msg.role === "user" && (
-                  <p className="question">
-                    <MdFace2 />
-                    <p>{msg.content}</p>
-                  </p>
-                )}
-                {msg.role === "assistant" && (
-                  <div className="answer">
-                    <LuBrainCircuit />
-                    {msg.content === "..." ? (
-                      <span className="blinking">...</span>
-                    ) : (
-                      <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                        {cleanMessage(msg.content)}
-                      </ReactMarkdown>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Conversation Input */}
-          <div className="conversation__input">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="¿En qué podemos ayudarte hoy?"
-              disabled={isLoading ? true : false}
-            ></textarea>
-            <button
-              onClick={handleSend}
-              className={isLoading ? 'pulsing' : ''}
-              disabled={isLoading ? true : false}
-            >
-              <FaLocationArrow />
-            </button>
-          </div>
-
-          {/* Select Model */}
-          <div className='conversation__model'>
-            <select
-              onChange={(e) => setSelectedModel(e.target.value)}
-              value={selectedModel}
-            >
-              <option key='' value=''>Selecciona el modelo</option>
-              {models.map(model => (
-                <option key={model.model} value={model.model}>
-                  {model.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+    <div className="chat__container">
+      <div className='chat__container--header'>
+        <h2>Neos Lab</h2>
+        <p className="tagline">Agencia de Publicidad y Marketing Digital</p>
       </div>
 
-      <Footer />
-    </>
+      <h1>Asistente Virtual</h1>
+
+      <div className="chat__container--conversation">
+        <div className='conversation__messages'>
+          {conversation.map((msg, index) => (
+            <div key={index} className="message">
+              {msg.role === "user" && (
+                <p className="question">
+                  <MdFace2 />
+                  <span>{msg.content}</span>
+                </p>
+              )}
+              {msg.role === "assistant" && (
+                <div className="answer">
+                  <LuBrainCircuit />
+                  {msg.content === "..." ? (
+                    <span className="blinking">...</span>
+                  ) : (
+                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                      {cleanMessage(msg.content)}
+                    </ReactMarkdown>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="conversation__input">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="¿En qué podemos ayudarte hoy?"
+            disabled={isLoading}
+          ></textarea>
+          <button
+            onClick={handleSend}
+            className={isLoading ? 'pulsing' : ''}
+            disabled={isLoading}
+          >
+            <FaLocationArrow />
+          </button>
+        </div>
+
+        <div className='conversation__model'>
+          <select
+            onChange={(e) => setSelectedModel(e.target.value)}
+            value={selectedModel}
+          >
+            <option key='' value=''>Selecciona el modelo</option>
+            {models.map(model => (
+              <option key={model.model} value={model.model}>
+                {model.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<><Header /><Chat /><Footer /></>} />
+        <Route path="/privacidad" element={<PrivacyPolicy />} />
+        <Route path="/terminos" element={<TermsOfService />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

@@ -1,4 +1,5 @@
 import { FaTelegram, FaWhatsapp, FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 function Footer() {
   return (
@@ -22,6 +23,10 @@ function Footer() {
           <p>Razón Social: [Razón Social]</p>
           <p>RFC: [RFC]</p>
           <p>Dirección Fiscal: [Dirección Fiscal]</p>
+          <div className="footer__links">
+            <Link to="/privacidad">Política de Privacidad</Link>
+            <Link to="/terminos">Términos del Servicio</Link>
+          </div>
         </div>
         
         <div className='footer__copyright'>
