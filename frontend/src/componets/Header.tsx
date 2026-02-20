@@ -14,9 +14,9 @@ function Header() {
         </div>
       </div>
       <div className="header__social">
-        <a className="link" title="Facebook" href="https://facebook.com/[Facebook]" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
-        <a className="link" title="Instagram" href="https://instagram.com/[Instagram]" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
-        <a className="link" title="TikTok" href="https://tiktok.com/@[Usuario]" target="_blank" rel="noopener noreferrer"><FaTiktok /></a>
+        <a className="link" title="Facebook" href="https://www.facebook.com/neoslab.tech" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
+        <a className="link" title="Instagram" href="https://www.instagram.com/neoslab.tech/" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
+        <a className="link" title="TikTok" href="https://www.tiktok.com/@neoslab.tech" target="_blank" rel="noopener noreferrer"><FaTiktok /></a>
       </div>
     </header>
   );
