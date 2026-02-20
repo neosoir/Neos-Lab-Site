@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 
-import reactLogo from './assets/react.svg';
-import ollamaLogo from './assets/docker.svg';
-import viteLogo from '/vite.svg';
 import { FaLocationArrow } from 'react-icons/fa';
 import { LuBrainCircuit } from "react-icons/lu";
 import { MdFace2 } from "react-icons/md";
@@ -90,12 +87,15 @@ function App() {
       }
 
       const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to create reader');
+      }
       const decoder = new TextDecoder();
       let done = false;
       let assistantContent = "";
 
       while (!done) {
-        const { value, done: doneReading } = await reader?.read()!;
+        const { value, done: doneReading } = await reader.read();
         done = doneReading;
         const chunk = decoder.decode(value, { stream: true });
 
@@ -124,18 +124,11 @@ function App() {
       <Header />
       <div className="chat__container">
         <div className='chat__container--header'>
-          <a className="link" href="https://vite.dev" target="_blank" rel="noopener noreferrer">
-            <img src={viteLogo} className="logo" alt="Vite logo" />
-          </a>
-          <a className="link" href="https://react.dev" target="_blank" rel="noopener noreferrer">
-            <img src={reactLogo} className="logo react" alt="React logo" />
-          </a>
-          <a className="link" href="https://ollama.com" target="_blank" rel="noopener noreferrer">
-            <img src={ollamaLogo} className="logo" alt="Ollama logo" />
-          </a>
+          <h2>Neos Lab</h2>
+          <p className="tagline">Agencia de Publicidad y Marketing Digital</p>
         </div>
 
-        <h1>Neo Chat</h1>
+        <h1>Asistente Virtual</h1>
 
         <div className="chat__container--conversation">
 
@@ -170,7 +163,7 @@ function App() {
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Haz una pregunta..."
+              placeholder="¿En qué podemos ayudarte hoy?"
               disabled={isLoading ? true : false}
             ></textarea>
             <button

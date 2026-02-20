@@ -81,12 +81,24 @@
   margin: 10px;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
   padding: 15px;
-  svg {
-    font-size: 30px;
-  }
   border-bottom: solid 1px white;
+  
+  .header__logo {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .header__social {
+    display: flex;
+    gap: 15px;
+  }
+  
+  svg {
+    font-size: 24px;
+  }
 }
 
 .link {
@@ -226,6 +238,53 @@
 .footer {
   .footer__info {
     margin: 10px;
+    text-align: left;
+    font-size: 12px;
+    
+    .footer__brand {
+      margin-bottom: 15px;
+      h3 {
+        margin: 0 0 5px 0;
+        font-size: 16px;
+      }
+      p {
+        margin: 2px 0;
+        color: #8b949e;
+      }
+    }
+    
+    .footer__contact, .footer__legal {
+      margin-bottom: 15px;
+      h4 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: var(--Blue-React);
+      }
+      p {
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #8b949e;
+        svg {
+          font-size: 12px;
+          width: 12px;
+        }
+      }
+    }
+    
+    .footer__copyright {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #333;
+      p {
+        margin: 0;
+        font-size: 11px;
+        color: #666;
+        text-align: center;
+      }
+    }
+    
     a {
       color: var(--Blue-React);
       &:hover {
@@ -239,11 +298,12 @@
     padding: 15px;
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
-    svg {
-      font-size: 30px;
-    }
+    justify-content: center;
+    gap: 20px;
     border-top: solid 1px white;
+    svg {
+      font-size: 24px;
+    }
   }
 }
 
