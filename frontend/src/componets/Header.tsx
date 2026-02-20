@@ -12,11 +12,9 @@ function Header() {
         </div>
       </div>
       <div className="header__social">
-        <a className="link" title="TikTok" href="https://tiktok.com/@[Usuario]" target="_blank" rel="noopener noreferrer"><FaTiktok /></a>
-        <a className="link" title="Instagram" href="https://instagram.com/[Instagram]" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
         <a className="link" title="Facebook" href="https://facebook.com/[Facebook]" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
-        <a className="link" title="LinkedIn" href="https://linkedin.com/company/[Empresa]" target="_blank" rel="noopener noreferrer"><SiLinkedin /></a>
-        <a className="link" title="WhatsApp" href="https://wa.me/[WhatsApp]" target="_blank" rel="noopener noreferrer"><FaWhatsapp /></a>
+        <a className="link" title="Instagram" href="https://instagram.com/[Instagram]" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
+        <a className="link" title="TikTok" href="https://tiktok.com/@[Usuario]" target="_blank" rel="noopener noreferrer"><FaTiktok /></a>
       </div>
     </header>
   );
