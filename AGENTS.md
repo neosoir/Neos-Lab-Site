@@ -100,3 +100,10 @@ Esto iniciara:
 - Los contenedores de frontend y ollama no exponen puertos directamente al host
 - Toda comunicación pasa por el reverse proxy de Nginx
 - Los certificados SSL no son necesarios en desarrollo
+
+## Estilos
+
+- **CSS puro** con CSS Nesting (anidamiento nativo)
+- **NO** se usa Tailwind CSS u otras librerías de estilos
+- Los archivos de estilos están en `frontend/src/*.css`
+- Se utilizan variables CSS en `:root` para colores y theme
