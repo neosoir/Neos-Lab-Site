@@ -1,4 +1,4 @@
-import { FaTelegram, FaWhatsapp, FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaMapMarkerAlt, FaTiktok, FaGithub, FaLinkedin } from 'react-icons/fa';
+import { FaTelegram, FaWhatsapp, FaEnvelope, FaGithub, FaLinkedin } from 'react-icons/fa';
 import { SiPlatzi } from 'react-icons/si';
 import { Link } from 'react-router-dom';
 

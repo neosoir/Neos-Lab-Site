@@ -1,5 +1,4 @@
-import { FaTiktok, FaInstagram, FaFacebook, FaWhatsapp } from "react-icons/fa";
-import { SiLinkedin } from "react-icons/si";
+import { FaTiktok, FaInstagram, FaFacebook } from "react-icons/fa";
 
 function Header() {
   return (
