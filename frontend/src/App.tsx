@@ -10,6 +10,7 @@ import Header from './componets/Header';
 import Footer from './componets/Footer';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import DataDeletion from './pages/DataDeletion';
 
 import './App.css';
 
@@ -198,6 +199,7 @@ function App() {
         <Route path="/" element={<><Header /><Chat /><Footer /></>} />
         <Route path="/privacidad" element={<PrivacyPolicy />} />
         <Route path="/terminos" element={<TermsOfService />} />
+        <Route path="/eliminacion-datos" element={<DataDeletion />} />
       </Routes>
     </BrowserRouter>
   );

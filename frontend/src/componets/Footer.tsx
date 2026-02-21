@@ -36,6 +36,7 @@ function Footer() {
       <div className="footer__links">
         <Link to="/privacidad">Política de Privacidad</Link>
         <Link to="/terminos">Términos del Servicio</Link>
+        <Link to="/eliminacion-datos">Eliminación de Datos</Link>
       </div>
     </footer>
   );
