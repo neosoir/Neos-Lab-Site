@@ -8,88 +8,48 @@ function DataDeletion() {
       <Header />
       <div className="legal-page">
         <div className="legal-content">
-          <h1>ELIMINACIÓN DE DATOS PERSONALES</h1>
-          <h2>Neos Lab WhatsApp API</h2>
+          <h1>ELIMINACIÓN DE DATOS DE USUARIO</h1>
+          <p className="last-update">Última actualización: 20 de febrero de 2026</p>
 
           <section>
-            <h3>1. Derecho a la Eliminación</h3>
             <p>
-              En cumplimiento con las regulaciones de protección de datos y los requisitos 
-              de Meta para Tech Providers, respeitamos su derecho a solicitar la 
-              eliminación completa de sus datos personales de nuestros sistemas.
+              Neos Lab respeta el derecho de los usuarios y clientes a solicitar 
+              la eliminación de sus datos personales y técnicos.
             </p>
           </section>
 
           <section>
-            <h3>2. Datos que Podemos Eliminar</h3>
-            <p>Upon request, we can delete the following data:</p>
+            <h3>¿Qué datos pueden eliminarse?</h3>
             <ul>
-              <li>Número telefónico utilizado en comunicaciones</li>
-              <li>Nombre visible en WhatsApp</li>
-              <li>Historial de mensajes enviados y recibidos</li>
-              <li>Fecha y hora de interacciones</li>
-              <li>Cualquier información voluntaria proporcionada</li>
-              <li>Registros de conversaciones con el asistente virtual</li>
+              <li>Tokens de acceso y credenciales API</li>
+              <li>Logs de mensajes y actividad automatizada</li>
+              <li>Datos de contacto y configuración de flujos</li>
             </ul>
           </section>
 
           <section>
-            <h3>3. Cómo Solicitar la Eliminación</h3>
+            <h3>¿Cómo solicitar la eliminación?</h3>
             <p>
-              Para solicitar la eliminación de sus datos personales, envíe un correo 
-              electrónico a:
-            </p>
-            <p className="contact">Correo de contacto: neoslab.marketing@gmail.com</p>
-            <p>
-              Incluya en su solicitud:
+              El titular de los datos puede enviar una solicitud a 
+              <span className="contact"> neoslab.marketing@gmail.com</span> indicando:
             </p>
             <ul>
-              <li>Nombre completo</li>
-              <li>Número de teléfono asociado a la cuenta</li>
-              <li>Correo electrónico de contacto</li>
-              <li>Declaración expresa de solicitud de eliminación de datos</li>
+              <li>Nombre del negocio o cliente</li>
+              <li>Activo vinculado (número de WhatsApp, página, etc.)</li>
+              <li>Tipo de datos que desea eliminar</li>
             </ul>
-          </section>
-
-          <section>
-            <h3>4. Plazo de Respuesta</h3>
-            <p>
-              responderemos a su solicitud dentro de los 30 días siguientes a la 
-              recepción de la misma. La eliminación de datos se realizará de manera 
-              completa y permanente de nuestros sistemas activos.
+            <p className="highlight">
+              La solicitud será atendida en un plazo máximo de 10 días hábiles.
             </p>
           </section>
 
           <section>
-            <h3>5. Excepciones</h3>
-            <p>
-              Podemos retener ciertos datos cuando sea requerido por ley o cuando 
-              sea necesario para:
-            </p>
+            <h3>¿Qué ocurre tras la eliminación?</h3>
             <ul>
-              <li>Cumplir con obligaciones legales</li>
-              <li>Resolver disputas</li>
-              <li>Hacer cumplir nuestros acuerdos</li>
+              <li>Se desactivan los flujos automatizados vinculados</li>
+              <li>Se revocan tokens y accesos técnicos</li>
+              <li>Se elimina la información de nuestros sistemas internos y respaldos</li>
             </ul>
-          </section>
-
-          <section>
-            <h3>6. Eliminación en WhatsApp</h3>
-            <p>
-              Tenga en cuenta que la eliminación de datos de nuestros sistemas no 
-              elimina automáticamente sus datos de la plataforma de WhatsApp 
-              (propiedad de Meta Platforms, Inc.). Para ello, deberá gestionar 
-              la eliminación directamente desde la configuración de su cuenta de WhatsApp.
-            </p>
-          </section>
-
-          <section>
-            <h3>7. Confirmación de Eliminación</h3>
-            <p>
-              Una vez completada la eliminación de sus datos, recibirá una 
-              confirmación por correo electrónico indicando que su solicitud 
-              ha sido procesada satisfactoriamente.
-            </p>
           </section>
         </div>
       </div>

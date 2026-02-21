@@ -9,88 +9,78 @@ function PrivacyPolicy() {
       <div className="legal-page">
         <div className="legal-content">
           <h1>POLÍTICA DE PRIVACIDAD</h1>
-          <h2>Neos Lab WhatsApp API</h2>
+          <p className="last-update">Última actualización: 20 de febrero de 2026</p>
 
           <section>
-            <h3>1. Responsable del Tratamiento</h3>
             <p>
-              Neos Lab (en adelante "La Empresa") es responsable del tratamiento de los datos 
-              personales recopilados a través de sus canales de comunicación digitales, 
-              incluyendo WhatsApp Business Platform.
+              En Neos Lab valoramos la privacidad de nuestros usuarios, clientes y visitantes. 
+              Esta Política de Privacidad describe cómo recopilamos, usamos, almacenamos y 
+              protegemos la información personal en relación con nuestros servicios de 
+              automatización, mensajería y asistencia técnica a través de plataformas como 
+              WhatsApp Business API, Meta Developers, n8n y otros canales digitales.
             </p>
-            <p className="contact">Correo de contacto: neoslab.marketing@gmail.com</p>
           </section>
 
           <section>
-            <h3>2. Datos que Recopilamos</h3>
-            <p>Podemos recopilar los siguientes datos cuando un usuario interactúa con nosotros:</p>
+            <h3>1. Información que recopilamos</h3>
+            <p>Podemos recopilar la siguiente información:</p>
             <ul>
-              <li>Número telefónico</li>
-              <li>Nombre visible en WhatsApp</li>
-              <li>Contenido de mensajes enviados y recibidos</li>
-              <li>Fecha y hora de interacción</li>
-              <li>Información proporcionada voluntariamente por el usuario</li>
+              <li>Datos de contacto: nombre, correo electrónico, número de teléfono</li>
+              <li>Información de negocio: nombre de la empresa, identificadores de Meta Business Manager, páginas de Facebook, números de WhatsApp</li>
+              <li>Datos técnicos: tokens de acceso, IDs de aplicaciones, configuraciones de webhook, logs de automatización</li>
+              <li>Información de uso: métricas de interacción, tasas de entrega, errores técnicos</li>
             </ul>
           </section>
 
           <section>
-            <h3>3. Finalidad del Tratamiento</h3>
-            <p>Los datos personales serán utilizados para:</p>
+            <h3>2. Cómo usamos la información</h3>
+            <p>Utilizamos la información recopilada para:</p>
             <ul>
-              <li>Atención a clientes y prospectos</li>
-              <li>Gestión de solicitudes, cotizaciones o soporte</li>
-              <li>Seguimiento comercial</li>
-              <li>Comunicación relacionada con productos o servicios</li>
-              <li>Análisis interno para mejora de procesos</li>
+              <li>Configurar y operar flujos automatizados en plataformas como WhatsApp, Facebook e Instagram</li>
+              <li>Gestionar integraciones técnicas con Meta APIs y herramientas como n8n</li>
+              <li>Proveer soporte técnico, monitoreo y mejoras continuas</li>
+              <li>Cumplir con requisitos legales y de cumplimiento de Meta</li>
             </ul>
-            <p className="highlight">No vendemos ni comercializamos datos personales a terceros.</p>
           </section>
 
           <section>
-            <h3>4. Uso de WhatsApp Business Platform</h3>
-            <p>
-              La comunicación se realiza mediante la plataforma de WhatsApp Business 
-              proporcionada por Meta Platforms, Inc. El uso de WhatsApp implica que 
-              el usuario también está sujeto a las políticas de privacidad de dicha plataforma.
-            </p>
-          </section>
-
-          <section>
-            <h3>5. Conservación de la Información</h3>
-            <p>
-              Los datos serán almacenados únicamente durante el tiempo necesario para 
-              cumplir con las finalidades mencionadas o para cumplir obligaciones legales aplicables.
-            </p>
-          </section>
-
-          <section>
-            <h3>6. Derechos del Usuario</h3>
-            <p>El usuario puede solicitar:</p>
+            <h3>3. Compartición de datos</h3>
+            <p>No vendemos ni compartimos información personal con terceros, salvo en los siguientes casos:</p>
             <ul>
-              <li>Acceso a sus datos</li>
-              <li>Corrección de datos inexactos</li>
-              <li>Eliminación de sus datos</li>
-              <li>Oposición al tratamiento</li>
+              <li>Con Meta Platforms Inc., para la activación y operación de APIs</li>
+              <li>Con proveedores de infraestructura técnica bajo acuerdos de confidencialidad</li>
+              <li>Cuando sea requerido por ley o autoridad competente</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>4. Seguridad</h3>
+            <p>Implementamos medidas técnicas y organizativas para proteger la información, incluyendo:</p>
+            <ul>
+              <li>Acceso restringido a tokens y credenciales</li>
+              <li>Segmentación de flujos por cliente</li>
+              <li>Monitoreo de calidad y uso responsable de APIs</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>5. Derechos del usuario</h3>
+            <p>Los usuarios pueden solicitar:</p>
+            <ul>
+              <li>Acceso, rectificación o eliminación de sus datos</li>
+              <li>Revocar el consentimiento para el uso de sus datos</li>
+              <li>Información sobre cómo se procesan sus datos</li>
             </ul>
             <p className="contact">
-              Para ejercer estos derechos, enviar solicitud a: neoslab.marketing@gmail.com
+              Para ejercer estos derechos, escríbenos a neoslab.marketing@gmail.com
             </p>
           </section>
 
           <section>
-            <h3>7. Seguridad</h3>
+            <h3>6. Cambios a esta política</h3>
             <p>
-              Implementamos medidas técnicas y organizativas razonables para proteger 
-              la información contra acceso no autorizado, alteration o destrucción.
-            </p>
-          </section>
-
-          <section>
-            <h3>8. Cambios en la Política</h3>
-            <p>
-              Nos reservamos el derecho de actualizar esta política en cualquier momento.
-              Las modificaciones serán publicadas en el mismo sitio donde se encuentre 
-              disponible esta política.
+              Nos reservamos el derecho de actualizar esta política. Notificaremos 
+              cualquier cambio importante a través de nuestro sitio web o canales oficiales.
             </p>
           </section>
         </div>
