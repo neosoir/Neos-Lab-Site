@@ -14,7 +14,7 @@ declare global {
         logPageView: () => void;
       };
       getLoginStatus: (callback: (response: LoginStatusResponse) => void) => void;
-      login: (callback: (response: LoginStatusResponse) => void, config?: { scope: string }) => void;
+      login: (callback: (response: LoginStatusResponse) => void, config?: { scope?: string; config_id?: string; response_type?: string; override_default_response_type?: boolean }) => void;
       logout: (callback: (response: LoginStatusResponse) => void) => void;
     };
     fbAsyncInit: () => void;
@@ -28,6 +28,7 @@ interface LoginStatusResponse {
     expiresIn: string;
     signedRequest: string;
     userID: string;
+    code?: string;
   };
 }
 
@@ -67,19 +68,27 @@ function LoginFacebook() {
   };
 
   const statusChangeCallback = (response: LoginStatusResponse) => {
+    console.log('Facebook Login Response:', response);
     setLoginStatus(response.status);
     
     if (response.status === 'connected' && response.authResponse) {
-      setUserId(response.authResponse.userID);
-      console.log('Logged in with Facebook. User ID:', response.authResponse.userID);
-      console.log('Access Token:', response.authResponse.accessToken);
+      if (response.authResponse.userID) {
+        setUserId(response.authResponse.userID);
+        console.log('Logged in with Facebook. User ID:', response.authResponse.userID);
+        console.log('Access Token:', response.authResponse.accessToken);
+      } else if (response.authResponse.code) {
+        console.log('Received authorization code:', response.authResponse.code);
+        console.log('This is a System User Access Token flow. Code needs to be exchanged for token on server.');
+      }
     }
   };
 
   const handleLogin = () => {
     window.FB.login(function(response: LoginStatusResponse) {
       statusChangeCallback(response);
-    }, { scope: 'public_profile,email' });
+    }, { 
+      config_id: '1452962549503611'
+    });
   };
 
   const handleLogout = () => {
