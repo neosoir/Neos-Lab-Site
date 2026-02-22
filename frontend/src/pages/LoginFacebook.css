@@ -1,0 +1,82 @@
+.login-facebook__container {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 40px 20px;
+}
+
+.login-facebook__card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.login-facebook__card h1 {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 30px;
+  background: linear-gradient(90deg, var(--Gradient-start), var(--Neon-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-facebook__card p {
+  color: #c9d1d9;
+  line-height: 1.7;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-facebook__success {
+  text-align: center;
+}
+
+.login-facebook__user-id {
+  background: rgba(168, 85, 247, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  font-family: monospace;
+}
+
+.login-facebook__btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  margin: 10px 5px;
+}
+
+.login-facebook__btn.login {
+  background: linear-gradient(135deg, #1877f2, #0d65d9);
+  color: white;
+}
+
+.login-facebook__btn.login:hover {
+  background: linear-gradient(135deg, #0d65d9, #0a4bb8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
+}
+
+.login-facebook__btn.logout {
+  background: rgba(255, 255, 255, 0.1);
+  color: #c9d1d9;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-facebook__btn.logout:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.login-facebook__not-authorized,
+.login-facebook__unknown {
+  text-align: center;
+}

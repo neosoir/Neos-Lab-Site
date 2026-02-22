@@ -11,6 +11,7 @@ import Footer from './componets/Footer';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import DataDeletion from './pages/DataDeletion';
+import LoginFacebook from './pages/LoginFacebook';
 
 import './App.css';
 
@@ -200,6 +201,7 @@ function App() {
         <Route path="/privacidad" element={<PrivacyPolicy />} />
         <Route path="/terminos" element={<TermsOfService />} />
         <Route path="/eliminacion-datos" element={<DataDeletion />} />
+        <Route path="/login-facebook" element={<LoginFacebook />} />
       </Routes>
     </BrowserRouter>
   );
