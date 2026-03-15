@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 
-import { FaLocationArrow } from 'react-icons/fa';
+import { FaLocationArrow, FaWhatsapp, FaRocket, FaBullhorn, FaLaptopCode, FaShoppingCart, FaCogs } from 'react-icons/fa';
 import { LuBrainCircuit } from "react-icons/lu";
 import { MdFace2 } from "react-icons/md";
 import Header from './componets/Header';
@@ -128,6 +128,18 @@ function Chat() {
       <div className='chat__container--header'>
         <h2>Neos Lab</h2>
         <p className="tagline">Agencia de Publicidad y Marketing Digital</p>
+      </div>
+
+      <div className="services-banner">
+        <h3>Nuestros Servicios</h3>
+        <div className="services-list">
+          <span className="service-tag"><FaWhatsapp /> WhatsApp Business API</span>
+          <span className="service-tag"><FaRocket /> CRM Personalizado</span>
+          <span className="service-tag"><FaBullhorn /> Marketing Digital</span>
+          <span className="service-tag"><FaLaptopCode /> Desarrollo Web</span>
+          <span className="service-tag"><FaShoppingCart /> E-commerce</span>
+          <span className="service-tag"><FaCogs /> Meta Tech Provider</span>
+        </div>
       </div>
 
       <h1>Asistente Virtual</h1>

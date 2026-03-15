@@ -84,6 +84,53 @@ body {
 
 /* Header */
 
+.services-banner {
+  margin: 10px 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(0, 180, 216, 0.1), rgba(123, 44, 191, 0.1));
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(123, 44, 191, 0.15);
+
+  h3 {
+    font-size: 14px;
+    margin: 0 0 10px 0;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+
+    .service-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 6px 12px;
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 20px;
+      color: #c9d1d9;
+      transition: all 0.3s ease;
+
+      svg {
+        font-size: 14px;
+        color: #00b4d8;
+      }
+
+      &:hover {
+        background: rgba(168, 85, 247, 0.35);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+      }
+    }
+  }
+}
+
 .header {
   margin-bottom: 20px;
   display: flex;
