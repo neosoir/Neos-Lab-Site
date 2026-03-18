@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -20,35 +20,39 @@ interface Message {
 }
 
 interface Model {
-  model: string;
   name: string;
+  size?: number;
+  modified_at?: string;
+}
+
+interface ChatResponse {
+  message: string;
+  session_id: string;
+  model: string;
 }
 
 function Chat() {
   const [text, setText] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
-  const apiUrl = import.meta.env.VITE_OLLAMA_API_URL;
+  const iaApiUrl = import.meta.env.VITE_IA_API_URL;
   const initialContext = import.meta.env.VITE_OLLAMA_CONTEXT;
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const options = import.meta.env.VITE_OLLAMA_USE_OPTIONS === 'true' ? {
-    num_predict: 100,
-    temperature: 0.7,
-    top_p: 0.9,
-    repeat_penalty: 1.1,
-    stop: ["\n"],
-  } : {};
-  
-  const cleanMessage = (message: string) => {
-    return message.replace(/<think>/g, '<div class="think">').replace(/<\/think>/g, '</div>');
-  };
-  
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    fetch(`${apiUrl}/api/tags`)
+    fetch(`${iaApiUrl}/api/models`)
       .then(response => response.json())
-      .then(data => setModels(data.models));
-  }, []);
+      .then(data => {
+        setModels(data.models || []);
+        if (data.models && data.models.length > 0) {
+          setSelectedModel(data.models[0].name);
+        }
+      })
+      .catch(err => console.error('Error fetching models:', err));
+  }, [iaApiUrl]);
 
   useEffect(() => {
     if (initialContext) {
@@ -57,12 +61,16 @@ function Chat() {
     }
   }, [initialContext]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversation]);
+
+  const cleanMessage = (message: string) => {
+    return message.replace(/<think>/g, '<div class="think">').replace(/<\/think>/g, '</div>');
+  };
+
   const handleSend = async () => {
     if (text.trim() === '') return;
-    if (selectedModel === '') {
-      alert('Por favor, selecciona un modelo antes de enviar un mensaje.');
-      return;
-    }
 
     const newMessage: Message = { role: "user", content: text };
     setConversation((prev) => [...prev, newMessage]);
@@ -73,16 +81,16 @@ function Chat() {
     setConversation((prev) => [...prev, assistantMessage]);
 
     try {
-      const response = await fetch(`${apiUrl}/api/chat`, {
+      const response = await fetch(`${iaApiUrl}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          message: text,
+          session_id: sessionId,
+          system_prompt: initialContext || undefined,
           model: selectedModel,
-          messages: [...conversation, newMessage],
-          stream: true,
-          options,
         }),
       });
 
@@ -90,37 +98,29 @@ function Chat() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('Failed to create reader');
+      const data: ChatResponse = await response.json();
+      
+      if (!sessionId && data.session_id) {
+        setSessionId(data.session_id);
       }
-      const decoder = new TextDecoder();
-      let done = false;
-      let assistantContent = "";
 
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunk = decoder.decode(value, { stream: true });
-
-        const jsonChunks = chunk.split('\n').filter(line => line.trim() !== '');
-        jsonChunks.forEach(jsonChunk => {
-          const parsedChunk = JSON.parse(jsonChunk);
-          if (parsedChunk.message && parsedChunk.message.content) {
-            assistantContent += parsedChunk.message.content;
-            setConversation((prev) => prev.map((msg, i) =>
-              i === prev.length - 1 ? { ...msg, content: assistantContent } : msg
-            ));
-          }
-        });
-      }
+      setConversation((prev) => prev.map((msg, i) =>
+        i === prev.length - 1 ? { ...msg, content: data.message } : msg
+      ));
     } catch (error) {
       console.error('Error sending text to API:', error);
       setConversation((prev) => prev.map((msg, i) =>
-        i === prev.length - 1 ? { ...msg, content: 'Error retrieving response' } : msg
+        i === prev.length - 1 ? { ...msg, content: 'Error retrieving response. Please try again.' } : msg
       ));
     }
     setIsLoading(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
@@ -166,14 +166,21 @@ function Chat() {
                   )}
                 </div>
               )}
+              {msg.role === "system" && index === 0 && (
+                <div className="system-message" style={{ display: 'none' }}>
+                  {msg.content}
+                </div>
+              )}
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
 
         <div className="conversation__input">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
+            onKeyPress={handleKeyPress}
             placeholder="¿En qué podemos ayudarte hoy?"
             disabled={isLoading}
           ></textarea>
@@ -191,13 +198,17 @@ function Chat() {
             onChange={(e) => setSelectedModel(e.target.value)}
             value={selectedModel}
           >
-            <option key='' value=''>Selecciona el modelo</option>
             {models.map(model => (
-              <option key={model.model} value={model.model}>
+              <option key={model.name} value={model.name}>
                 {model.name}
               </option>
             ))}
           </select>
+          {sessionId && (
+            <span className="session-indicator" title="Sesión activa">
+              Session: {sessionId.slice(0, 8)}...
+            </span>
+          )}
         </div>
       </div>
     </div>
