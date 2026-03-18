@@ -25,12 +25,6 @@ interface Model {
   modified_at?: string;
 }
 
-interface ChatResponse {
-  message: string;
-  session_id: string;
-  model: string;
-}
-
 function Chat() {
   const [text, setText] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
