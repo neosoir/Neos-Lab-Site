@@ -77,11 +77,13 @@ function Chat() {
     setIsLoading(true);
     setText('');
 
-    const assistantMessage: Message = { role: "assistant", content: "..." };
+    const assistantMessage: Message = { role: "assistant", content: "" };
     setConversation((prev) => [...prev, assistantMessage]);
 
+    let currentSessionId = sessionId;
+
     try {
-      const response = await fetch(`${iaApiUrl}/api/chat`, {
+      const response = await fetch(`${iaApiUrl}/api/chat/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,15 +100,47 @@ function Chat() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const data: ChatResponse = await response.json();
-      
-      if (!sessionId && data.session_id) {
-        setSessionId(data.session_id);
+      if (!response.body) {
+        throw new Error('No response body');
       }
 
-      setConversation((prev) => prev.map((msg, i) =>
-        i === prev.length - 1 ? { ...msg, content: data.message } : msg
-      ));
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('event:')) continue;
+          if (!line.startsWith('data:')) continue;
+
+          const dataStr = line.slice(6).trim();
+          if (!dataStr) continue;
+
+          try {
+            const data = JSON.parse(dataStr);
+
+            if (data.content !== undefined) {
+              setConversation((prev) => prev.map((msg, i) =>
+                i === prev.length - 1 ? { ...msg, content: msg.content + data.content } : msg
+              ));
+            }
+
+            if (data.session_id && !currentSessionId) {
+              currentSessionId = data.session_id;
+              setSessionId(data.session_id);
+            }
+          } catch (e) {
+            // Skip malformed JSON
+          }
+        }
+      }
     } catch (error) {
       console.error('Error sending text to API:', error);
       setConversation((prev) => prev.map((msg, i) =>
