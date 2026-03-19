@@ -107,3 +107,40 @@ Esto iniciara:
 - **NO** se usa Tailwind CSS u otras librerías de estilos
 - Los archivos de estilos están en `frontend/src/*.css`
 - Se utilizan variables CSS en `:root` para colores y theme
+
+---
+
+## Integración con IA Service (CRM)
+
+El chat del frontend se conecta al IA Service del CRM para respuestas en tiempo real.
+
+### Flujo de Datos
+
+```
+Chat → POST /api/chat/stream (SSE)
+           │
+           ▼
+    IA Service → Ollama → Streaming response
+```
+
+### Endpoints used
+
+| Endpoint | Descripción |
+|----------|-------------|
+| `GET /api/models` | Lista de modelos disponibles |
+| `GET /api/health` | Estado y modelo por defecto |
+| `POST /api/chat/stream` | Chat con streaming SSE |
+
+### Modelo por Defecto
+
+El frontend obtiene el modelo por defecto del endpoint `/api/health` (campo `default_model`) y lo usa automáticamente. Si el modelo no está disponible, usa el primer modelo de la lista.
+
+### Estado (Marzo 2026)
+
+| Feature | Estado |
+|---------|--------|
+| Streaming SSE | ✅ Funcionando |
+| Modelo por defecto desde API | ✅ |
+| Fallback a primer modelo | ✅ |
+| IA_USE_LANGGRAPH=false | ✅ Fluido |
+| IA_USE_LANGGRAPH=true | ⚠️ Streaming no llega |
