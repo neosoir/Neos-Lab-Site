@@ -38,12 +38,20 @@ function Chat() {
   const lastAssistantIndex = useRef<number>(-1);
 
   useEffect(() => {
-    fetch(`${iaApiUrl}/api/models`)
-      .then(response => response.json())
-      .then(data => {
-        setModels(data.models || []);
-        if (data.models && data.models.length > 0) {
-          setSelectedModel(data.models[0].name);
+    Promise.all([
+      fetch(`${iaApiUrl}/api/models`).then(r => r.json()),
+      fetch(`${iaApiUrl}/api/health`).then(r => r.json())
+    ])
+      .then(([modelsData, healthData]) => {
+        setModels(modelsData.models || []);
+        const defaultModel = healthData.default_model;
+        const availableModel = modelsData.models?.find((m: any) => m.name === defaultModel);
+        
+        if (defaultModel && availableModel) {
+          setSelectedModel(defaultModel);
+          console.log('[Frontend] Using default model:', defaultModel);
+        } else if (modelsData.models && modelsData.models.length > 0) {
+          setSelectedModel(modelsData.models[0].name);
         }
       })
       .catch(err => console.error('Error fetching models:', err));
