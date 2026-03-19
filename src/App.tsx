@@ -28,7 +28,6 @@ interface Model {
 function Chat() {
   const [text, setText] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
-  const [streamKey, setStreamKey] = useState(0);
   const iaApiUrl = import.meta.env.VITE_IA_API_URL;
   const initialContext = import.meta.env.VITE_OLLAMA_CONTEXT;
   const [models, setModels] = useState<Model[]>([]);
@@ -36,7 +35,7 @@ function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef('');
+  const lastAssistantIndex = useRef<number>(-1);
 
   useEffect(() => {
     fetch(`${iaApiUrl}/api/models`)
@@ -69,15 +68,17 @@ function Chat() {
     if (text.trim() === '') return;
 
     const newMessage: Message = { role: "user", content: text };
+    const currentConvLength = conversation.length;
     setConversation((prev) => [...prev, newMessage]);
     setIsLoading(true);
     setText('');
 
     const assistantMessage: Message = { role: "assistant", content: "" };
-    contentRef.current = "";
     setConversation((prev) => [...prev, assistantMessage]);
+    lastAssistantIndex.current = currentConvLength + 1;
 
     let currentSessionId = sessionId;
+    let assistantContent = "";
 
     try {
       const response = await fetch(`${iaApiUrl}/api/chat/stream`, {
@@ -122,14 +123,19 @@ function Chat() {
 
           try {
             const data = JSON.parse(dataStr);
-            console.log('[Frontend] Received SSE data:', data);
 
             if (data.content !== undefined) {
-              contentRef.current += data.content;
-              setConversation((prev) => prev.map((msg, i) =>
-                i === prev.length - 1 ? { ...msg, content: contentRef.current } : msg
-              ));
-              setStreamKey(k => k + 1);
+              assistantContent += data.content;
+              setConversation((prev) => {
+                const newConv = [...prev];
+                if (lastAssistantIndex.current >= 0 && lastAssistantIndex.current < newConv.length) {
+                  newConv[lastAssistantIndex.current] = { 
+                    ...newConv[lastAssistantIndex.current], 
+                    content: assistantContent 
+                  };
+                }
+                return newConv;
+              });
             }
 
             if (data.session_id && !currentSessionId) {
@@ -143,9 +149,16 @@ function Chat() {
       }
     } catch (error) {
       console.error('Error sending text to API:', error);
-      setConversation((prev) => prev.map((msg, i) =>
-        i === prev.length - 1 ? { ...msg, content: 'Error retrieving response. Please try again.' } : msg
-      ));
+      setConversation((prev) => {
+        const newConv = [...prev];
+        if (lastAssistantIndex.current >= 0 && lastAssistantIndex.current < newConv.length) {
+          newConv[lastAssistantIndex.current] = { 
+            ...newConv[lastAssistantIndex.current], 
+            content: 'Error retrieving response. Please try again.' 
+          };
+        }
+        return newConv;
+      });
     } finally {
       setIsLoading(false);
     }
