@@ -28,6 +28,7 @@ interface Model {
 function Chat() {
   const [text, setText] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
+  const [streamKey, setStreamKey] = useState(0);
   const iaApiUrl = import.meta.env.VITE_IA_API_URL;
   const initialContext = import.meta.env.VITE_OLLAMA_CONTEXT;
   const [models, setModels] = useState<Model[]>([]);
@@ -35,6 +36,7 @@ function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef('');
 
   useEffect(() => {
     fetch(`${iaApiUrl}/api/models`)
@@ -72,6 +74,7 @@ function Chat() {
     setText('');
 
     const assistantMessage: Message = { role: "assistant", content: "" };
+    contentRef.current = "";
     setConversation((prev) => [...prev, assistantMessage]);
 
     let currentSessionId = sessionId;
@@ -119,11 +122,14 @@ function Chat() {
 
           try {
             const data = JSON.parse(dataStr);
+            console.log('[Frontend] Received SSE data:', data);
 
             if (data.content !== undefined) {
+              contentRef.current += data.content;
               setConversation((prev) => prev.map((msg, i) =>
-                i === prev.length - 1 ? { ...msg, content: msg.content + data.content } : msg
+                i === prev.length - 1 ? { ...msg, content: contentRef.current } : msg
               ));
+              setStreamKey(k => k + 1);
             }
 
             if (data.session_id && !currentSessionId) {
@@ -140,8 +146,9 @@ function Chat() {
       setConversation((prev) => prev.map((msg, i) =>
         i === prev.length - 1 ? { ...msg, content: 'Error retrieving response. Please try again.' } : msg
       ));
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -185,7 +192,7 @@ function Chat() {
               {msg.role === "assistant" && (
                 <div className="answer">
                   <LuBrainCircuit />
-                  {msg.content === "..." ? (
+                  {msg.content === "" && isLoading ? (
                     <span className="blinking">...</span>
                   ) : (
                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>
