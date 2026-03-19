@@ -80,6 +80,8 @@ function Chat() {
     let currentSessionId = sessionId;
     let assistantContent = "";
 
+    console.log('[Frontend] Starting chat stream...', { iaApiUrl, text: text.slice(0, 30) });
+
     try {
       const response = await fetch(`${iaApiUrl}/api/chat/stream`, {
         method: 'POST',
@@ -97,6 +99,8 @@ function Chat() {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
+      console.log('[Frontend] Response OK, status:', response.status, 'body:', response.body ? 'exists' : 'null');
 
       if (!response.body) {
         throw new Error('No response body');
