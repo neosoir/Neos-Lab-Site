@@ -26,12 +26,12 @@ function Footer() {
         <p>© 2025 Neos Lab. Todos los derechos reservados.</p>
       </div>
       
-      <div className='footer__legal'>
+      {/* <div className='footer__legal'>
         <h4>Datos fiscales</h4>
         <span>Leonardo Rios Pineda</span>
         <span>RFC: RIPL990424HT7</span>
         <span>neoslab.marketing@gmail.com</span>
-      </div>
+      </div> */}
 
       <div className="footer__links">
         <Link to="/privacidad">Política de Privacidad</Link>
