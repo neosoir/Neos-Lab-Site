@@ -109,48 +109,81 @@ function Chat() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let chunkCount = 0;
+
+      console.log('[Frontend] Starting stream read...');
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        
+        if (done) {
+          console.log('[Frontend] Stream done, chunks received:', chunkCount);
+          break;
+        }
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        if (value) {
+          const decoded = decoder.decode(value, { stream: true });
+          buffer += decoded;
+          console.log('[Frontend] Received chunk:', value.length, 'bytes, buffer:', buffer.length);
+          
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
-        for (const line of lines) {
-          if (line.startsWith('event:')) continue;
-          if (!line.startsWith('data:')) continue;
-
-          const dataStr = line.slice(6).trim();
-          if (!dataStr) continue;
-
-          try {
-            const data = JSON.parse(dataStr);
-
-            if (data.content !== undefined) {
-              assistantContent += data.content;
-              setConversation((prev) => {
-                const newConv = [...prev];
-                if (lastAssistantIndex.current >= 0 && lastAssistantIndex.current < newConv.length) {
-                  newConv[lastAssistantIndex.current] = { 
-                    ...newConv[lastAssistantIndex.current], 
-                    content: assistantContent 
-                  };
-                }
-                return newConv;
-              });
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            
+            console.log('[Frontend] Processing line:', line.slice(0, 100));
+            
+            // Skip event declarations
+            if (line.startsWith('event:')) {
+              console.log('[Frontend] Event type:', line.replace('event:', '').trim());
+              continue;
             }
+            if (!line.startsWith('data:')) continue;
 
-            if (data.session_id && !currentSessionId) {
-              currentSessionId = data.session_id;
-              setSessionId(data.session_id);
+            const dataStr = line.slice(6).trim();
+            if (!dataStr) continue;
+
+            try {
+              const data = JSON.parse(dataStr);
+              console.log('[Frontend] Parsed data:', JSON.stringify(data).slice(0, 100));
+
+              if (data.content !== undefined) {
+                chunkCount++;
+                assistantContent += data.content;
+                setConversation((prev) => {
+                  const newConv = [...prev];
+                  if (lastAssistantIndex.current >= 0 && lastAssistantIndex.current < newConv.length) {
+                    newConv[lastAssistantIndex.current] = { 
+                      ...newConv[lastAssistantIndex.current], 
+                      content: assistantContent 
+                    };
+                  }
+                  return newConv;
+                });
+              }
+
+              // Check for done or error events
+              if (data.done === true) {
+                console.log('[Frontend] Stream DONE received');
+              }
+
+              if (data.error) {
+                console.log('[Frontend] Stream ERROR:', data.error);
+              }
+
+              if (data.session_id && !currentSessionId) {
+                currentSessionId = data.session_id;
+                setSessionId(data.session_id);
+              }
+            } catch (e) {
+              console.log('[Frontend] JSON parse error:', e, 'dataStr:', dataStr);
             }
-          } catch (e) {
-            // Skip malformed JSON
           }
         }
       }
+      
+      console.log('[Frontend] Stream finished, total chunks:', chunkCount, 'total length:', assistantContent.length);
     } catch (error) {
       console.error('Error sending text to API:', error);
       setConversation((prev) => {
@@ -164,11 +197,13 @@ function Chat() {
         return newConv;
       });
     } finally {
+      console.log('[Frontend] Setting isLoading to false');
       setIsLoading(false);
+      console.log('[Frontend] isLoading after set:', isLoading);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -232,7 +267,7 @@ function Chat() {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="¿En qué podemos ayudarte hoy?"
             disabled={isLoading}
           ></textarea>
