@@ -144,3 +144,66 @@ El frontend obtiene el modelo por defecto del endpoint `/api/health` (campo `def
 | Fallback a primer modelo | ✅ |
 | IA_USE_LANGGRAPH=false | ✅ Fluido |
 | IA_USE_LANGGRAPH=true | ⚠️ Streaming no llega |
+
+---
+
+## Chat Components Library
+
+### Overview
+
+El proyecto usa `@neos-lab/chat-components`, una librería compartida de componentes de chat que se monta directamente en `node_modules` via volumen de Docker.
+
+### Ubicación
+
+- **Librería**: `lib/chat-components/`
+- **Volumen**: Configurado en `docker-compose.yml`
+
+### Uso
+
+```tsx
+// Importar componentes
+import { ChatContainer, MessageBubble, MessageInput } from '@neos-lab/chat-components';
+
+// Importar estilos (importar en App.tsx o entry point)
+import '@neos-lab/chat-components/styles/variables.css';
+import '@neos-lab/chat-components/styles/components.css';
+
+// Ejemplo de uso
+<ChatContainer
+  messages={messages}
+  config={{
+    enableAudio: false,  // Frontend no tiene audio
+    enableStreaming: true,
+    enableMarkdown: true,
+  }}
+  sseConfig={{
+    url: 'https://api.example.com/chat/stream',
+  }}
+  onSendMessage={(text) => console.log('Send:', text)}
+/>
+```
+
+### Configuración de Estilos
+
+La librería usa CSS variables con valores por defecto. Para personalizar el theme, sobrescribir las variables **antes** de importar los estilos:
+
+```css
+/* src/index.css */
+:root {
+  /* Sobrescribir con theme NeosLab */
+  --chat-bubble-bg-outgoing: linear-gradient(135deg, #667eea, #764ba2);
+  --chat-bubble-text-outgoing: #ffffff;
+  --chat-container-bg: #1a1a2e;
+}
+
+/* Luego importar librería */
+@import '@neos-lab/chat-components/styles/variables.css';
+@import '@neos-lab/chat-components/styles/components.css';
+```
+
+### Actualizar la Librería
+
+Para actualizar la librería:
+1. Hacer cambios en `lib/chat-components/src/`
+2. Reiniciar el contenedor: `docker-compose restart frontend`
+3. Verificar: `docker exec ctr_crm_frontend ls -la node_modules/@neos-lab/chat-components`
