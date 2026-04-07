@@ -1,0 +1,134 @@
+/* NeosLab Chat Theme Override */
+/* Import BEFORE library styles to override default values */
+
+:root {
+  /* === Chat Bubble Colors - NeosLab Gradient Theme === */
+  --chat-bubble-bg-outgoing: linear-gradient(135deg, #667eea, #764ba2);
+  --chat-bubble-bg-incoming: #2d2d44;
+  --chat-bubble-text-outgoing: #ffffff;
+  --chat-bubble-text-incoming: #e0e0e0;
+  --chat-bubble-radius: 1.25rem;
+  --chat-bubble-padding: 0.75rem 1rem;
+  --chat-bubble-max-width: 85%;
+
+  /* === Chat Container === */
+  --chat-container-bg: #1a1a2e;
+  --chat-container-border: rgba(168, 85, 247, 0.3);
+  --chat-container-height: 100%;
+  --chat-container-min-height: 300px;
+
+  /* === Message List === */
+  --chat-message-list-bg: transparent;
+  --chat-message-list-padding: 1rem;
+  --chat-date-separator-color: #8b949e;
+  --chat-date-separator-bg: rgba(168, 85, 247, 0.2);
+  --chat-date-separator-radius: 9999px;
+
+  /* === Message Input === */
+  --chat-input-bg: rgba(255, 255, 255, 0.05);
+  --chat-input-border: rgba(168, 85, 247, 0.3);
+  --chat-input-border-focus: #667eea;
+  --chat-input-text: #ffffff;
+  --chat-input-placeholder: rgba(255, 255, 255, 0.4);
+  --chat-input-radius: 15px;
+  --chat-input-padding: 0.75rem 1rem;
+  --chat-input-min-height: 48px;
+  --chat-input-max-height: 120px;
+
+  /* === Input Actions (buttons) === */
+  --chat-action-btn-color: #8b949e;
+  --chat-action-btn-hover: #667eea;
+  --chat-action-btn-size: 36px;
+  --chat-send-btn-bg: linear-gradient(135deg, #667eea, #764ba2);
+  --chat-send-btn-color: #ffffff;
+  --chat-send-btn-hover: #764ba2;
+
+  /* === Audio Recorder === */
+  --chat-audio-recorder-bg: rgba(168, 85, 247, 0.2);
+  --chat-audio-recorder-color: #667eea;
+  --chat-audio-waveform-color: #764ba2;
+  --chat-audio-duration-color: #8b949e;
+
+  /* === Audio Player === */
+  --chat-audio-player-bg: rgba(255, 255, 255, 0.1);
+  --chat-audio-player-icon: #8b949e;
+  --chat-audio-player-progress: #667eea;
+
+  /* === Media Viewer === */
+  --chat-media-overlay-bg: rgba(0, 0, 0, 0.9);
+  --chat-media-close-color: #ffffff;
+  --chat-media-caption-color: #ffffff;
+  --chat-media-max-width: 300px;
+  --chat-media-max-height: 300px;
+
+  /* === Quick Replies / Buttons === */
+  --chat-quickreply-bg: rgba(168, 85, 247, 0.2);
+  --chat-quickreply-border: rgba(168, 85, 247, 0.3);
+  --chat-quickreply-color: #c9d1d9;
+  --chat-quickreply-hover: rgba(168, 85, 247, 0.35);
+  --chat-quickreply-radius: 20px;
+
+  /* === Sticker === */
+  --chat-sticker-size: 128px;
+
+  /* === Location === */
+  --chat-location-bg: rgba(255, 255, 255, 0.05);
+  --chat-location-border: rgba(168, 85, 247, 0.3);
+  --chat-location-map-height: 150px;
+
+  /* === Template Message === */
+  --chat-template-bg: rgba(0, 180, 216, 0.1);
+  --chat-template-border: rgba(168, 85, 247, 0.3);
+  --chat-template-header-color: #00b4d8;
+
+  /* === Status Indicators === */
+  --chat-status-sending: #9ca3af;
+  --chat-status-sent: #667eea;
+  --chat-status-delivered: #10b981;
+  --chat-status-read: #667eea;
+  --chat-status-failed: #ef4444;
+
+  /* === Spacing === */
+  --chat-spacing-xs: 0.25rem;
+  --chat-spacing-sm: 0.5rem;
+  --chat-spacing-md: 1rem;
+  --chat-spacing-lg: 1.5rem;
+
+  /* === Typography === */
+  --chat-font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --chat-font-size-sm: 0.875rem;
+  --chat-font-size-base: 1rem;
+  --chat-font-size-lg: 1.125rem;
+  --chat-line-height: 1.5;
+
+  /* === Animations === */
+  --chat-transition-fast: 150ms ease;
+  --chat-transition-normal: 200ms ease;
+  --chat-transition-slow: 300ms ease;
+
+  /* === Dark Mode - NeosLab Dark Theme === */
+  --chat-dark-bubble-bg-outgoing: linear-gradient(135deg, #667eea, #764ba2);
+  --chat-dark-bubble-bg-incoming: #2d2d44;
+  --chat-dark-bubble-text-outgoing: #ffffff;
+  --chat-dark-bubble-text-incoming: #e0e0e0;
+  --chat-dark-container-bg: #1a1a2e;
+  --chat-dark-container-border: rgba(168, 85, 247, 0.3);
+  --chat-dark-input-bg: rgba(255, 255, 255, 0.05);
+  --chat-dark-input-border: rgba(168, 85, 247, 0.3);
+  --chat-dark-input-text: #ffffff;
+  --chat-dark-input-placeholder: rgba(255, 255, 255, 0.4);
+}
+
+/* Force dark mode for this chat (NeosLab uses dark theme) */
+.chat-container {
+  --chat-bubble-bg-outgoing: var(--chat-dark-bubble-bg-outgoing, linear-gradient(135deg, #667eea, #764ba2));
+  --chat-bubble-bg-incoming: var(--chat-dark-bubble-bg-incoming, #2d2d44);
+  --chat-bubble-text-outgoing: var(--chat-dark-bubble-text-outgoing, #ffffff);
+  --chat-bubble-text-incoming: var(--chat-dark-bubble-text-incoming, #e0e0e0);
+  --chat-container-bg: var(--chat-dark-container-bg, #1a1a2e);
+  --chat-container-border: var(--chat-dark-container-border, rgba(168, 85, 247, 0.3));
+  --chat-input-bg: var(--chat-dark-input-bg, rgba(255, 255, 255, 0.05));
+  --chat-input-border: var(--chat-dark-input-border, rgba(168, 85, 247, 0.3));
+  --chat-input-text: var(--chat-dark-input-text, #ffffff);
+  --chat-input-placeholder: var(--chat-dark-input-placeholder, rgba(255, 255, 255, 0.4));
+}

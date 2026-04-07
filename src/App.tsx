@@ -1,222 +1,135 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
 
-import { FaLocationArrow, FaWhatsapp, FaRocket, FaBullhorn, FaLaptopCode, FaShoppingCart, FaCogs } from 'react-icons/fa';
-import { LuBrainCircuit } from "react-icons/lu";
-import { MdFace2 } from "react-icons/md";
+import { FaWhatsapp, FaRocket, FaBullhorn, FaLaptopCode, FaShoppingCart, FaCogs } from 'react-icons/fa';
 import Header from './componets/Header';
 import Footer from './componets/Footer';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import DataDeletion from './pages/DataDeletion';
 
+import { ChatContainer, type ChatMessage } from '@neos-lab/chat-components';
+import '@neos-lab/chat-components/styles/variables.css';
+import '@neos-lab/chat-components/styles/components.css';
+import './chat-theme.css';
 import './App.css';
 
-interface Message {
-  role: string;
-  content: string;
-}
-
-interface Model {
-  name: string;
-  size?: number;
-  modified_at?: string;
-}
-
 function Chat() {
-  const [text, setText] = useState('');
-  const [conversation, setConversation] = useState<Message[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const iaApiUrl = import.meta.env.VITE_IA_API_URL;
   const initialContext = import.meta.env.VITE_OLLAMA_CONTEXT;
-  const [models, setModels] = useState<Model[]>([]);
-  const [selectedModel, setSelectedModel] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const lastAssistantIndex = useRef<number>(-1);
-
-  useEffect(() => {
-    Promise.all([
-      fetch(`${iaApiUrl}/api/models`).then(r => r.json()),
-      fetch(`${iaApiUrl}/api/health`).then(r => r.json())
-    ])
-      .then(([modelsData, healthData]) => {
-        setModels(modelsData.models || []);
-        const defaultModel = healthData.default_model;
-        const availableModel = modelsData.models?.find((m: any) => m.name === defaultModel);
-        
-        if (defaultModel && availableModel) {
-          setSelectedModel(defaultModel);
-          console.log('[Frontend] Using default model:', defaultModel);
-        } else if (modelsData.models && modelsData.models.length > 0) {
-          setSelectedModel(modelsData.models[0].name);
-        }
-      })
-      .catch(err => console.error('Error fetching models:', err));
-  }, [iaApiUrl]);
 
   useEffect(() => {
     if (initialContext) {
-      const initialMessage: Message = { role: "system", content: initialContext };
-      setConversation([initialMessage]);
+      const systemMsg: ChatMessage = {
+        id: 'system-init',
+        type: 'text',
+        content: initialContext,
+        direction: 'inbound',
+        timestamp: new Date(),
+      };
+      setChatMessages([systemMsg]);
     }
   }, [initialContext]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation]);
+  }, [chatMessages]);
 
-  const cleanMessage = (message: string) => {
-    return message.replace(/<think>/g, '<div class="think">').replace(/<\/think>/g, '</div>');
-  };
+  const handleSendMessage = useCallback(async (userText: string, _attachments?: File[]) => {
+    if (userText.trim() === '') return;
 
-  const handleSend = async () => {
-    if (text.trim() === '') return;
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'text',
+      content: userText,
+      direction: 'outbound',
+      timestamp: new Date(),
+      status: 'sending',
+    };
 
-    const newMessage: Message = { role: "user", content: text };
-    const currentConvLength = conversation.length;
-    setConversation((prev) => [...prev, newMessage]);
-    setIsLoading(true);
-    setText('');
+    setChatMessages(prev => [...prev, userMessage]);
 
-    const assistantMessage: Message = { role: "assistant", content: "" };
-    setConversation((prev) => [...prev, assistantMessage]);
-    lastAssistantIndex.current = currentConvLength + 1;
+    const aiMessage: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      type: 'text',
+      content: '',
+      direction: 'inbound',
+      timestamp: new Date(),
+      status: 'sending',
+    };
+    setChatMessages(prev => [...prev, aiMessage]);
 
     let currentSessionId = sessionId;
-    let assistantContent = "";
-
-    console.log('[Frontend] Starting chat stream...', { iaApiUrl, text: text.slice(0, 30) });
 
     try {
       const response = await fetch(`${iaApiUrl}/api/chat/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: text,
+          message: userText,
           session_id: sessionId,
           system_prompt: initialContext || undefined,
-          model: selectedModel,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      console.log('[Frontend] Response OK, status:', response.status, 'body:', response.body ? 'exists' : 'null');
-
-      if (!response.body) {
-        throw new Error('No response body');
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.body) throw new Error('No response body');
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let chunkCount = 0;
-
-      console.log('[Frontend] Starting stream read...');
+      let assistantContent = '';
 
       while (true) {
         const { done, value } = await reader.read();
-        
-        if (done) {
-          console.log('[Frontend] Stream done, chunks received:', chunkCount);
-          break;
-        }
+        if (done) break;
 
         if (value) {
-          const decoded = decoder.decode(value, { stream: true });
-          buffer += decoded;
-          console.log('[Frontend] Received chunk:', value.length, 'bytes, buffer:', buffer.length);
-          
+          buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split('\n');
           buffer = lines.pop() || '';
 
           for (const line of lines) {
-            if (!line.trim()) continue;
-            
-            console.log('[Frontend] Processing line:', line.slice(0, 100));
-            
-            // Skip event declarations
-            if (line.startsWith('event:')) {
-              console.log('[Frontend] Event type:', line.replace('event:', '').trim());
-              continue;
-            }
-            if (!line.startsWith('data:')) continue;
-
+            if (!line.trim() || !line.startsWith('data: ')) continue;
             const dataStr = line.slice(6).trim();
             if (!dataStr) continue;
 
             try {
               const data = JSON.parse(dataStr);
-              console.log('[Frontend] Parsed data:', JSON.stringify(data).slice(0, 100));
-
               if (data.content !== undefined) {
-                chunkCount++;
                 assistantContent += data.content;
-                setConversation((prev) => {
-                  const newConv = [...prev];
-                  if (lastAssistantIndex.current >= 0 && lastAssistantIndex.current < newConv.length) {
-                    newConv[lastAssistantIndex.current] = { 
-                      ...newConv[lastAssistantIndex.current], 
-                      content: assistantContent 
-                    };
+                setChatMessages(prev => {
+                  const newMsgs = [...prev];
+                  const lastIdx = newMsgs.length - 1;
+                  if (lastIdx >= 0 && newMsgs[lastIdx].direction === 'inbound') {
+                    newMsgs[lastIdx] = { ...newMsgs[lastIdx], content: assistantContent, status: 'delivered' };
                   }
-                  return newConv;
+                  return newMsgs;
                 });
               }
-
-              // Check for done or error events
-              if (data.done === true) {
-                console.log('[Frontend] Stream DONE received');
-              }
-
-              if (data.error) {
-                console.log('[Frontend] Stream ERROR:', data.error);
-              }
-
               if (data.session_id && !currentSessionId) {
                 currentSessionId = data.session_id;
                 setSessionId(data.session_id);
               }
-            } catch (e) {
-              console.log('[Frontend] JSON parse error:', e, 'dataStr:', dataStr);
-            }
+            } catch {}
           }
         }
       }
-      
-      console.log('[Frontend] Stream finished, total chunks:', chunkCount, 'total length:', assistantContent.length);
     } catch (error) {
-      console.error('Error sending text to API:', error);
-      setConversation((prev) => {
-        const newConv = [...prev];
-        if (lastAssistantIndex.current >= 0 && lastAssistantIndex.current < newConv.length) {
-          newConv[lastAssistantIndex.current] = { 
-            ...newConv[lastAssistantIndex.current], 
-            content: 'Error retrieving response. Please try again.' 
-          };
+      console.error('[Chat] Error:', error);
+      setChatMessages(prev => {
+        const newMsgs = [...prev];
+        const lastIdx = newMsgs.length - 1;
+        if (lastIdx >= 0 && newMsgs[lastIdx].direction === 'inbound') {
+          newMsgs[lastIdx] = { ...newMsgs[lastIdx], content: 'Error de conexión. Intenta de nuevo.', status: 'failed' };
         }
-        return newConv;
+        return newMsgs;
       });
-    } finally {
-      console.log('[Frontend] Setting isLoading to false');
-      setIsLoading(false);
-      console.log('[Frontend] isLoading after set:', isLoading);
     }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  }, [iaApiUrl, sessionId, initialContext]);
 
   return (
     <div className="chat__container">
@@ -240,71 +153,17 @@ function Chat() {
       <h1>Asistente Virtual</h1>
 
       <div className="chat__container--conversation">
-        <div className='conversation__messages'>
-          {conversation.map((msg, index) => (
-            <div key={index} className="message">
-              {msg.role === "user" && (
-                <p className="question">
-                  <MdFace2 />
-                  <span>{msg.content}</span>
-                </p>
-              )}
-              {msg.role === "assistant" && (
-                <div className="answer">
-                  <LuBrainCircuit />
-                  {msg.content === "" && isLoading ? (
-                    <span className="blinking">...</span>
-                  ) : (
-                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                      {cleanMessage(msg.content)}
-                    </ReactMarkdown>
-                  )}
-                </div>
-              )}
-              {msg.role === "system" && index === 0 && (
-                <div className="system-message" style={{ display: 'none' }}>
-                  {msg.content}
-                </div>
-              )}
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <div className="conversation__input">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="¿En qué podemos ayudarte hoy?"
-            disabled={isLoading}
-          ></textarea>
-          <button
-            onClick={handleSend}
-            className={isLoading ? 'pulsing' : ''}
-            disabled={isLoading}
-          >
-            <FaLocationArrow />
-          </button>
-        </div>
-
-        <div className='conversation__model'>
-          <select
-            onChange={(e) => setSelectedModel(e.target.value)}
-            value={selectedModel}
-          >
-            {models.map(model => (
-              <option key={model.name} value={model.name}>
-                {model.name}
-              </option>
-            ))}
-          </select>
-          {sessionId && (
-            <span className="session-indicator" title="Sesión activa">
-              Session: {sessionId.slice(0, 8)}...
-            </span>
-          )}
-        </div>
+        <ChatContainer
+          messages={chatMessages}
+          config={{
+            enableStreaming: true,
+            enableMarkdown: true,
+            showTimestamps: true,
+            placeholder: '¿En qué podemos ayudarte hoy?',
+          }}
+          onSendMessage={handleSendMessage}
+        />
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );
