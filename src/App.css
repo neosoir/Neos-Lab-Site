@@ -242,6 +242,8 @@ body {
   }
 
   .chat__container--conversation {
+    padding: 10px;
+    min-width: 320px;
     /* Here is the chat componets */
   }
 }
