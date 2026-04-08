@@ -102,7 +102,12 @@ function Chat() {
                   
                   if (aiIdx >= 0) {
                     // Actualizar mensaje existente
-                    newMsgs[aiIdx] = { ...newMsgs[aiIdx], content: assistantContent, status: 'delivered' };
+                    newMsgs[aiIdx] = { 
+                      ...newMsgs[aiIdx], 
+                      content: assistantContent, 
+                      status: 'delivered',
+                      isStreaming: true // Mark as streaming while receiving content
+                    };
                   } else {
                     // Crear nuevo mensaje AI
                     const aiMessage: ChatMessage = {
@@ -112,6 +117,7 @@ function Chat() {
                       direction: 'inbound',
                       timestamp: new Date(),
                       status: 'delivered',
+                      isStreaming: true,
                     };
                     newMsgs.push(aiMessage);
                   }
@@ -137,6 +143,10 @@ function Chat() {
         status: 'failed',
       }]);
     } finally {
+      // Clear streaming flag from all AI messages
+      setChatMessages(prev => prev.map(m => 
+        m.direction === 'inbound' ? { ...m, isStreaming: false } : m
+      ));
       setIsLoading(false);
     }
   }, [iaApiUrl, sessionId, initialContext]);
