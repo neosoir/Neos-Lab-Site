@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { FaWhatsapp, FaRocket, FaBullhorn, FaLaptopCode, FaShoppingCart, FaCogs } from 'react-icons/fa';
+import { LuBrainCircuit } from "react-icons/lu";
+import { MdFace2 } from "react-icons/md";
 import Header from './componets/Header';
 import Footer from './componets/Footer';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -162,6 +164,9 @@ function Chat() {
             placeholder: '¿En qué podemos ayudarte hoy?',
           }}
           onSendMessage={handleSendMessage}
+          inboundAvatar={<LuBrainCircuit />}
+          outboundAvatar={<MdFace2 />}
+          typingAvatar={<LuBrainCircuit />}
         />
         <div ref={messagesEndRef} />
       </div>
