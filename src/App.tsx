@@ -18,6 +18,7 @@ import './App.css';
 
 function Chat() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const iaApiUrl = import.meta.env.VITE_IA_API_URL;
   const initialContext = import.meta.env.VITE_OLLAMA_CONTEXT;
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -53,16 +54,7 @@ function Chat() {
     };
 
     setChatMessages(prev => [...prev, userMessage]);
-
-    const aiMessage: ChatMessage = {
-      id: `ai-${Date.now()}`,
-      type: 'text',
-      content: '',
-      direction: 'inbound',
-      timestamp: new Date(),
-      status: 'sending',
-    };
-    setChatMessages(prev => [...prev, aiMessage]);
+    setIsLoading(true);
 
     let currentSessionId = sessionId;
 
@@ -105,9 +97,23 @@ function Chat() {
                 assistantContent += data.content;
                 setChatMessages(prev => {
                   const newMsgs = [...prev];
-                  const lastIdx = newMsgs.length - 1;
-                  if (lastIdx >= 0 && newMsgs[lastIdx].direction === 'inbound') {
-                    newMsgs[lastIdx] = { ...newMsgs[lastIdx], content: assistantContent, status: 'delivered' };
+                  // Buscar si ya existe un mensaje inbound (IA)
+                  const aiIdx = newMsgs.findIndex(m => m.direction === 'inbound' && m.id.startsWith('ai-'));
+                  
+                  if (aiIdx >= 0) {
+                    // Actualizar mensaje existente
+                    newMsgs[aiIdx] = { ...newMsgs[aiIdx], content: assistantContent, status: 'delivered' };
+                  } else {
+                    // Crear nuevo mensaje AI
+                    const aiMessage: ChatMessage = {
+                      id: `ai-${Date.now()}`,
+                      type: 'text',
+                      content: assistantContent,
+                      direction: 'inbound',
+                      timestamp: new Date(),
+                      status: 'delivered',
+                    };
+                    newMsgs.push(aiMessage);
                   }
                   return newMsgs;
                 });
@@ -122,14 +128,16 @@ function Chat() {
       }
     } catch (error) {
       console.error('[Chat] Error:', error);
-      setChatMessages(prev => {
-        const newMsgs = [...prev];
-        const lastIdx = newMsgs.length - 1;
-        if (lastIdx >= 0 && newMsgs[lastIdx].direction === 'inbound') {
-          newMsgs[lastIdx] = { ...newMsgs[lastIdx], content: 'Error de conexión. Intenta de nuevo.', status: 'failed' };
-        }
-        return newMsgs;
-      });
+      setChatMessages(prev => [...prev, {
+        id: `ai-${Date.now()}`,
+        type: 'text',
+        content: 'Error de conexión. Intenta de nuevo.',
+        direction: 'inbound',
+        timestamp: new Date(),
+        status: 'failed',
+      }]);
+    } finally {
+      setIsLoading(false);
     }
   }, [iaApiUrl, sessionId, initialContext]);
 
@@ -157,6 +165,7 @@ function Chat() {
       <div className="chat__container--conversation">
         <ChatContainer
           messages={chatMessages}
+          isLoading={isLoading}
           config={{
             enableStreaming: true,
             enableMarkdown: true,
