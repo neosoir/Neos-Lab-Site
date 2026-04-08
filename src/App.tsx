@@ -96,20 +96,20 @@ function Chat() {
               if (data.content !== undefined) {
                 assistantContent += data.content;
                 setChatMessages(prev => {
-                  const newMsgs = [...prev];
-                  // Buscar si ya existe un mensaje inbound (IA)
-                  const aiIdx = newMsgs.findIndex(m => m.direction === 'inbound' && m.id.startsWith('ai-'));
+                  // Solo actualizar mensajes que tienen isStreaming: true
+                  const streamingIdx = prev.findIndex(m => m.isStreaming === true);
                   
-                  if (aiIdx >= 0) {
-                    // Actualizar mensaje existente
-                    newMsgs[aiIdx] = { 
-                      ...newMsgs[aiIdx], 
+                  if (streamingIdx >= 0) {
+                    // Actualizar mensaje existente con streaming
+                    const newMsgs = [...prev];
+                    newMsgs[streamingIdx] = { 
+                      ...newMsgs[streamingIdx], 
                       content: assistantContent, 
-                      status: 'delivered',
-                      isStreaming: true // Mark as streaming while receiving content
+                      status: 'delivered'
                     };
+                    return newMsgs;
                   } else {
-                    // Crear nuevo mensaje AI
+                    // Crear nuevo mensaje AI con flag de streaming
                     const aiMessage: ChatMessage = {
                       id: `ai-${Date.now()}`,
                       type: 'text',
@@ -119,9 +119,8 @@ function Chat() {
                       status: 'delivered',
                       isStreaming: true,
                     };
-                    newMsgs.push(aiMessage);
+                    return [...prev, aiMessage];
                   }
-                  return newMsgs;
                 });
               }
               if (data.session_id && !currentSessionId) {
