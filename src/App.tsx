@@ -15,17 +15,35 @@ import '@neos-lab/chat-components/styles/variables.css';
 import '@neos-lab/chat-components/styles/components.css';
 import './chat-theme.css';
 import './App.css';
+import { getOrCreateDeviceId, getSessionId, setSessionId as saveSessionIdToCookie } from './utils/cookies';
 
 function Chat() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const iaApiUrl = import.meta.env.VITE_IA_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
   const initialContext = import.meta.env.VITE_OLLAMA_CONTEXT;
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionIdLocal] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const deviceId = getOrCreateDeviceId();
+  const savedSessionId = getSessionId();
+
+  const handleSetSessionId = useCallback((newSessionId: string) => {
+    setSessionIdLocal(newSessionId);
+    saveSessionIdToCookie(newSessionId);
+  }, []);
+
   useEffect(() => {
-    if (initialContext) {
+    console.log('[Chat] Frontend - savedSessionId:', savedSessionId, 'apiUrl:', apiUrl, 'iaApiUrl:', iaApiUrl);
+    if (savedSessionId && apiUrl) {
+      setSessionIdLocal(savedSessionId);
+      loadMessages(savedSessionId);
+    }
+  }, [savedSessionId, apiUrl]);
+
+  useEffect(() => {
+    if (initialContext && chatMessages.length === 0) {
       const systemMsg: ChatMessage = {
         id: 'system-init',
         type: 'text',
@@ -40,6 +58,95 @@ function Chat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  const loadMessages = async (sessionIdToLoad: string) => {
+    console.log('[Chat] loadMessages called with:', sessionIdToLoad, 'apiUrl:', apiUrl);
+    if (!apiUrl) {
+      console.error('[Chat] API URL not configured!');
+      return;
+    }
+    try {
+      console.log('[Chat] Fetching from:', `${apiUrl}/api/ia/messages?session_id=${encodeURIComponent(sessionIdToLoad)}`);
+      const response = await fetch(`${apiUrl}/api/ia/messages?session_id=${encodeURIComponent(sessionIdToLoad)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Device-ID': deviceId,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data.messages && data.data.messages.length > 0) {
+          const loadedMessages: ChatMessage[] = data.data.messages.map((msg: any) => ({
+            id: msg.id,
+            type: msg.message_type,
+            content: msg.content,
+            direction: msg.direction === 'outbound' ? 'outbound' : 'inbound',
+            timestamp: new Date(msg.timestamp),
+            status: msg.status,
+          }));
+          setChatMessages(loadedMessages);
+          if (data.data.session_id && !sessionId) {
+            handleSetSessionId(data.data.session_id);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[Chat] Error loading messages:', error);
+    }
+  };
+
+  const saveUserMessage = async (content: string, currentSessionId: string, convId?: string) => {
+    console.log('[Chat] saveUserMessage called:', { content: content.substring(0, 50), currentSessionId, apiUrl });
+    if (!apiUrl) {
+      console.error('[Chat] API URL not configured for saveUserMessage!');
+      return;
+    }
+    try {
+      console.log('[Chat] Saving user message to:', `${apiUrl}/api/ia/save-message`);
+      await fetch(`${apiUrl}/api/ia/save-message`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Device-ID': deviceId,
+        },
+        body: JSON.stringify({
+          message: content,
+          direction: 'outbound',
+          session_id: currentSessionId,
+          conversation_id: convId,
+        }),
+      });
+    } catch (error) {
+      console.error('[Chat] Error saving user message:', error);
+    }
+  };
+
+  const saveAiMessage = async (content: string, currentSessionId: string, convId?: string) => {
+    console.log('[Chat] saveAiMessage called:', { content: content.substring(0, 50), currentSessionId, apiUrl });
+    if (!apiUrl) {
+      console.error('[Chat] API URL not configured for saveAiMessage!');
+      return;
+    }
+    try {
+      console.log('[Chat] Saving AI message to:', `${apiUrl}/api/ia/save-message`);
+      await fetch(`${apiUrl}/api/ia/save-message`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Device-ID': deviceId,
+        },
+        body: JSON.stringify({
+          message: content,
+          direction: 'inbound',
+          session_id: currentSessionId,
+          conversation_id: convId,
+        }),
+      });
+    } catch (error) {
+      console.error('[Chat] Error saving AI message:', error);
+    }
+  };
 
   const handleSendMessage = useCallback(async (userText: string, _attachments?: File[]) => {
     if (userText.trim() === '') return;
@@ -72,6 +179,8 @@ function Chat() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       if (!response.body) throw new Error('No response body');
 
+      saveUserMessage(userText, currentSessionId || '', undefined);
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -96,11 +205,9 @@ function Chat() {
               if (data.content !== undefined) {
                 assistantContent += data.content;
                 setChatMessages(prev => {
-                  // Solo actualizar mensajes que tienen isStreaming: true
                   const streamingIdx = prev.findIndex(m => m.isStreaming === true);
                   
                   if (streamingIdx >= 0) {
-                    // Actualizar mensaje existente con streaming
                     const newMsgs = [...prev];
                     newMsgs[streamingIdx] = { 
                       ...newMsgs[streamingIdx], 
@@ -109,7 +216,6 @@ function Chat() {
                     };
                     return newMsgs;
                   } else {
-                    // Crear nuevo mensaje AI con flag de streaming
                     const aiMessage: ChatMessage = {
                       id: `ai-${Date.now()}`,
                       type: 'text',
@@ -125,11 +231,15 @@ function Chat() {
               }
               if (data.session_id && !currentSessionId) {
                 currentSessionId = data.session_id;
-                setSessionId(data.session_id);
+                handleSetSessionId(data.session_id);
               }
             } catch {}
           }
         }
+      }
+
+      if (assistantContent) {
+        saveAiMessage(assistantContent, currentSessionId || '', undefined);
       }
     } catch (error) {
       console.error('[Chat] Error:', error);
@@ -142,13 +252,12 @@ function Chat() {
         status: 'failed',
       }]);
     } finally {
-      // Clear streaming flag from all AI messages
       setChatMessages(prev => prev.map(m => 
         m.direction === 'inbound' ? { ...m, isStreaming: false } : m
       ));
       setIsLoading(false);
     }
-  }, [iaApiUrl, sessionId, initialContext]);
+  }, [iaApiUrl, sessionId, initialContext, apiUrl, deviceId]);
 
   return (
     <div className="chat__container">
