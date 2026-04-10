@@ -16,23 +16,14 @@ export function removeCookie(name: string): void {
   document.cookie = `${name}=;max-age=0;path=/`;
 }
 
-export function getOrCreateDeviceId(): string {
-  let deviceId = getCookie('ia_device_id');
-  if (!deviceId) {
-    deviceId = crypto.randomUUID();
-    setCookie('ia_device_id', deviceId);
-  }
-  return deviceId;
+export function getConversationId(): string | null {
+  return getCookie('ia_conversation_id');
 }
 
-export function getSessionId(): string | null {
-  return getCookie('ia_session_id');
+export function setConversationId(conversationId: string): void {
+  setCookie('ia_conversation_id', conversationId);
 }
 
-export function setSessionId(sessionId: string): void {
-  setCookie('ia_session_id', sessionId);
-}
-
-export function clearSessionId(): void {
-  removeCookie('ia_session_id');
+export function clearConversationId(): void {
+  removeCookie('ia_conversation_id');
 }

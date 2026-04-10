@@ -15,7 +15,7 @@ import '@neos-lab/chat-components/styles/variables.css';
 import '@neos-lab/chat-components/styles/components.css';
 import './chat-theme.css';
 import './App.css';
-import { getOrCreateDeviceId, getSessionId, setSessionId as saveSessionIdToCookie } from './utils/cookies';
+import { getConversationId, setConversationId } from './utils/cookies';
 
 function Chat() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -23,24 +23,23 @@ function Chat() {
   const iaApiUrl = import.meta.env.VITE_IA_API_URL;
   const apiUrl = import.meta.env.VITE_API_URL;
   const initialContext = import.meta.env.VITE_OLLAMA_CONTEXT;
-  const [sessionId, setSessionIdLocal] = useState<string | null>(null);
+  const [conversationId, setConversationIdLocal] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const deviceId = getOrCreateDeviceId();
-  const savedSessionId = getSessionId();
+  const savedConversationId = getConversationId();
 
-  const handleSetSessionId = useCallback((newSessionId: string) => {
-    setSessionIdLocal(newSessionId);
-    saveSessionIdToCookie(newSessionId);
+  const handleSetConversationId = useCallback((newConversationId: string) => {
+    setConversationIdLocal(newConversationId);
+    setConversationId(newConversationId);
   }, []);
 
   useEffect(() => {
-    console.log('[Chat] Frontend - savedSessionId:', savedSessionId, 'apiUrl:', apiUrl, 'iaApiUrl:', iaApiUrl);
-    if (savedSessionId && apiUrl) {
-      setSessionIdLocal(savedSessionId);
-      loadMessages(savedSessionId);
+    console.log('[Chat] Frontend - savedConversationId:', savedConversationId, 'apiUrl:', apiUrl, 'iaApiUrl:', iaApiUrl);
+    if (savedConversationId && apiUrl) {
+      setConversationIdLocal(savedConversationId);
+      loadMessages(savedConversationId);
     }
-  }, [savedSessionId, apiUrl]);
+  }, [savedConversationId, apiUrl]);
 
   useEffect(() => {
     if (initialContext && chatMessages.length === 0) {
@@ -59,18 +58,17 @@ function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  const loadMessages = async (sessionIdToLoad: string) => {
-    console.log('[Chat] loadMessages called with:', sessionIdToLoad, 'apiUrl:', apiUrl);
+  const loadMessages = async (conversationIdToLoad: string) => {
+    console.log('[Chat] loadMessages called with:', conversationIdToLoad, 'apiUrl:', apiUrl);
     if (!apiUrl) {
       console.error('[Chat] API URL not configured!');
       return;
     }
     try {
-      console.log('[Chat] Fetching from:', `${apiUrl}/api/ia/messages?session_id=${encodeURIComponent(sessionIdToLoad)}`);
-      const response = await fetch(`${apiUrl}/api/ia/messages?session_id=${encodeURIComponent(sessionIdToLoad)}`, {
+      console.log('[Chat] Fetching from:', `${apiUrl}/api/ia/messages/${encodeURIComponent(conversationIdToLoad)}`);
+      const response = await fetch(`${apiUrl}/api/ia/messages/${encodeURIComponent(conversationIdToLoad)}`, {
         headers: {
           'Content-Type': 'application/json',
-          'X-Device-ID': deviceId,
         },
       });
       
@@ -86,9 +84,6 @@ function Chat() {
             status: msg.status,
           }));
           setChatMessages(loadedMessages);
-          if (data.data.session_id && !sessionId) {
-            handleSetSessionId(data.data.session_id);
-          }
         }
       }
     } catch (error) {
@@ -96,24 +91,54 @@ function Chat() {
     }
   };
 
-  const saveUserMessage = async (content: string, currentSessionId: string, convId?: string) => {
-    console.log('[Chat] saveUserMessage called:', { content: content.substring(0, 50), currentSessionId, apiUrl });
+  const createOrGetConversation = async (): Promise<string | null> => {
     if (!apiUrl) {
-      console.error('[Chat] API URL not configured for saveUserMessage!');
-      return;
+      console.error('[Chat] API URL not configured!');
+      return null;
     }
+    
+    if (conversationId) {
+      return conversationId;
+    }
+
     try {
-      console.log('[Chat] Saving user message to:', `${apiUrl}/api/ia/save-message`);
+      const response = await fetch(`${apiUrl}/api/ia/save-message`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: '',
+          direction: 'system',
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data.conversation_id) {
+          handleSetConversationId(data.data.conversation_id);
+          return data.data.conversation_id;
+        }
+      }
+    } catch (error) {
+      console.error('[Chat] Error creating conversation:', error);
+    }
+    
+    return null;
+  };
+
+  const saveUserMessage = async (content: string, convId: string) => {
+    if (!apiUrl) return;
+    
+    try {
       await fetch(`${apiUrl}/api/ia/save-message`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-Device-ID': deviceId,
         },
         body: JSON.stringify({
           message: content,
           direction: 'outbound',
-          session_id: currentSessionId,
           conversation_id: convId,
         }),
       });
@@ -122,24 +147,18 @@ function Chat() {
     }
   };
 
-  const saveAiMessage = async (content: string, currentSessionId: string, convId?: string) => {
-    console.log('[Chat] saveAiMessage called:', { content: content.substring(0, 50), currentSessionId, apiUrl });
-    if (!apiUrl) {
-      console.error('[Chat] API URL not configured for saveAiMessage!');
-      return;
-    }
+  const saveAiMessage = async (content: string, convId: string) => {
+    if (!apiUrl) return;
+    
     try {
-      console.log('[Chat] Saving AI message to:', `${apiUrl}/api/ia/save-message`);
       await fetch(`${apiUrl}/api/ia/save-message`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-Device-ID': deviceId,
         },
         body: JSON.stringify({
           message: content,
           direction: 'inbound',
-          session_id: currentSessionId,
           conversation_id: convId,
         }),
       });
@@ -163,7 +182,12 @@ function Chat() {
     setChatMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
-    let currentSessionId = sessionId;
+    const currentConversationId = await createOrGetConversation();
+    if (!currentConversationId) {
+      console.error('[Chat] Failed to get conversation ID');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch(`${iaApiUrl}/api/chat/stream`, {
@@ -171,7 +195,7 @@ function Chat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userText,
-          session_id: sessionId,
+          session_id: currentConversationId,
           system_prompt: initialContext || undefined,
         }),
       });
@@ -179,7 +203,7 @@ function Chat() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       if (!response.body) throw new Error('No response body');
 
-      saveUserMessage(userText, currentSessionId || '', undefined);
+      saveUserMessage(userText, currentConversationId);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -229,17 +253,13 @@ function Chat() {
                   }
                 });
               }
-              if (data.session_id && !currentSessionId) {
-                currentSessionId = data.session_id;
-                handleSetSessionId(data.session_id);
-              }
             } catch {}
           }
         }
       }
 
       if (assistantContent) {
-        saveAiMessage(assistantContent, currentSessionId || '', undefined);
+        saveAiMessage(assistantContent, currentConversationId);
       }
     } catch (error) {
       console.error('[Chat] Error:', error);
@@ -257,7 +277,7 @@ function Chat() {
       ));
       setIsLoading(false);
     }
-  }, [iaApiUrl, sessionId, initialContext, apiUrl, deviceId]);
+  }, [iaApiUrl, conversationId, initialContext, apiUrl, createOrGetConversation]);
 
   return (
     <div className="chat__container">
