@@ -14,7 +14,7 @@
   /* === Chat Container === */
   --chat-container-bg: #1a1a2e;
   --chat-container-border: rgba(168, 85, 247, 0.3);
-  --chat-container-height: 100%;
+  --chat-container-height: 400px;
   --chat-container-min-height: 300px;
 
   /* === Message List === */
