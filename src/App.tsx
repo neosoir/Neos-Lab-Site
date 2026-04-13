@@ -10,7 +10,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import DataDeletion from './pages/DataDeletion';
 
-import { ChatContainer, type ChatMessage } from '@neos-lab/chat-components';
+import { ChatContainer, type ChatMessage, type MessageType } from '@neos-lab/chat-components';
 import '@neos-lab/chat-components/styles/variables.css';
 import '@neos-lab/chat-components/styles/components.css';
 import './chat-theme.css';
@@ -127,7 +127,7 @@ function Chat() {
     return null;
   };
 
-  const saveUserMessage = async (content: string, convId: string) => {
+  const saveUserMessage = async (content: string, convId: string, mediaUrl?: string, mediaMimeType?: string) => {
     if (!apiUrl) return;
     
     try {
@@ -140,6 +140,9 @@ function Chat() {
           message: content,
           direction: 'outbound',
           conversation_id: convId,
+          media_url: mediaUrl,
+          media_mime_type: mediaMimeType,
+          message_type: mediaUrl ? 'image' : 'text',
         }),
       });
     } catch (error) {
@@ -167,16 +170,37 @@ function Chat() {
     }
   };
 
-  const handleSendMessage = useCallback(async (userText: string, _attachments?: File[]) => {
-    if (userText.trim() === '') return;
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSendMessage = useCallback(async (userText: string, attachments?: File[]) => {
+    if (!userText.trim() && (!attachments || attachments.length === 0)) return;
+
+    let imageBase64: string | undefined;
+    let mediaUrl: string | undefined;
+    let messageType: MessageType = 'text';
+
+    if (attachments && attachments.length > 0) {
+      const file = attachments[0];
+      imageBase64 = await fileToBase64(file);
+      mediaUrl = imageBase64;
+      messageType = 'image';
+    }
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
-      type: 'text',
+      type: messageType,
       content: userText,
       direction: 'outbound',
       timestamp: new Date(),
       status: 'sending',
+      mediaUrl,
     };
 
     setChatMessages(prev => [...prev, userMessage]);
@@ -197,15 +221,17 @@ function Chat() {
           message: userText,
           session_id: currentConversationId,
           system_prompt: initialContext || undefined,
+          image: imageBase64,
         }),
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      if (!response.body) throw new Error('No response body');
+      const responseBody = response.body;
+      if (!responseBody) throw new Error('No response body');
 
-      saveUserMessage(userText, currentConversationId);
+      const mediaMimeType = imageBase64 ? imageBase64.split(';')[0].replace('data:', '') : undefined;
+      saveUserMessage(userText, currentConversationId, mediaUrl, mediaMimeType);
 
-      const reader = response.body.getReader();
+      const reader = responseBody.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
       let assistantContent = '';
@@ -305,6 +331,7 @@ function Chat() {
           messages={chatMessages}
           isLoading={isLoading}
           config={{
+            enableAttachments: true,
             enableStreaming: true,
             enableMarkdown: true,
             showTimestamps: true,
