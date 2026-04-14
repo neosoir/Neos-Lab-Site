@@ -337,6 +337,7 @@ function Chat() {
             enableAttachments: true,
             enableStreaming: true,
             enableMarkdown: true,
+            enableSpeechToText: true,
             showTimestamps: true,
             placeholder: '¿En qué podemos ayudarte hoy?',
           }}
