@@ -82,7 +82,10 @@ function Chat() {
             direction: msg.direction === 'outbound' ? 'outbound' : 'inbound',
             timestamp: new Date(msg.timestamp),
             status: msg.status,
+            mediaUrl: msg.media_url || undefined,
           }));
+          // Messages come oldest first, reverse to show newest at bottom
+          loadedMessages.reverse();
           setChatMessages(loadedMessages);
         }
       }
