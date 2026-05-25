@@ -339,7 +339,7 @@ function Chat() {
             enableMarkdown: true,
             enableSpeechToText: true,
             showTimestamps: true,
-            placeholder: '¿En qué podemos ayudarte hoy?',
+            placeholder: '¿Cómo podemos ayudarte?',
           }}
           onSendMessage={handleSendMessage}
           inboundAvatar={<LuBrainCircuit />}
